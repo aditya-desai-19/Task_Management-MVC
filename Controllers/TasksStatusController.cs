@@ -28,6 +28,7 @@ namespace Task_Management.Controllers
                         join t in _context.Tasks on u.UserId equals t.UserId
                         select new TaskViewModel
                         {
+                            TaskId = t.TaskId,
                             Name = t.Name,
                             Description = t.Description,
                             Status = t.Status,
@@ -112,12 +113,21 @@ namespace Task_Management.Controllers
                 return NotFound();
             }
 
+            var taskViewModel = new TaskViewModel();
             var tasks = await _context.Tasks.FindAsync(id);
             if (tasks == null)
             {
                 return NotFound();
+            } 
+            else
+            {
+                taskViewModel.TaskId = tasks.TaskId;
+                taskViewModel.Name = tasks.Name;
+                taskViewModel.Status = tasks.Status;
+                taskViewModel.Description = tasks.Description;
+                taskViewModel.StudentName = await _context.Users.Where(u => u.UserId == tasks.UserId).Select(u => u.Name).FirstOrDefaultAsync();
             }
-            return View(tasks);
+            return View(taskViewModel);
         }
 
         // POST: TasksStatus/Edit/5
@@ -125,34 +135,28 @@ namespace Task_Management.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("TaskId,Name,Description,Status")] Tasks tasks)
+        public async Task<IActionResult> Edit(TaskViewModel model)
         {
-            if (id != tasks.TaskId)
+            if (model.TaskId == null)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
+            try
             {
-                try
+                var task = await _context.Tasks.FindAsync(model.TaskId);
+                if(task != null)
                 {
-                    _context.Update(tasks);
-                    await _context.SaveChangesAsync();
+                    task.Name = model.Name;
+                    task.Status = model.Status;
+                    task.Description = model.Description;
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TasksExists(tasks.TaskId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                await _context.SaveChangesAsync();
             }
-            return View(tasks);
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            return RedirectToAction(nameof(Index));
         }
 
         // GET: TasksStatus/Delete/5
@@ -163,14 +167,21 @@ namespace Task_Management.Controllers
                 return NotFound();
             }
 
-            var tasks = await _context.Tasks
-                .FirstOrDefaultAsync(m => m.TaskId == id);
+            var taskViewModel = new TaskViewModel();
+            var tasks = await _context.Tasks.FindAsync(id);
             if (tasks == null)
             {
                 return NotFound();
             }
-
-            return View(tasks);
+            else
+            {
+                taskViewModel.TaskId = tasks.TaskId;
+                taskViewModel.Name = tasks.Name;
+                taskViewModel.Status = tasks.Status;
+                taskViewModel.Description = tasks.Description;
+                taskViewModel.StudentName = await _context.Users.Where(u => u.UserId == tasks.UserId).Select(u => u.Name).FirstOrDefaultAsync();
+            }
+            return View(taskViewModel);
         }
 
         // POST: TasksStatus/Delete/5

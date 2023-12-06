@@ -16,6 +16,7 @@
             <th scope ="col">Description</th>
             <th scope="col">Status</th>
             <th scope="col">Assigned to</th>
+            <th scope="col">Operation</th>
         </tr>
     </thead>
     <tbody>
@@ -26,6 +27,11 @@
                 <td scope="row">@task.Description</td>
                 <td scope="row">@task.Status</td>
                 <td scope="row">@task.StudentName</td>
+                <td scope="row">
+                    <button class="btn btn-warning" onclick="location.href = '@Url.Action("Edit", "TasksStatus", new { id = task.TaskId }, null)'">Edit</button>
+                    <button class="btn btn-danger" onclick="location.href = '@Url.Action("Delete", "TasksStatus", new { id = task.TaskId }, null)'">Delete</button>
+                </td>
+
             </tr>
         }
     </tbody>
